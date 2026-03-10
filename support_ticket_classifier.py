@@ -1,7 +1,4 @@
-"""
-FUTURE_ML_02 — Support Ticket Classification System
-Aesthetic Light Edition — soft pastel palette, editorial typography
-"""
+
 
 import re, random, warnings
 import numpy as np
