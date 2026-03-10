@@ -1,8 +1,12 @@
-
-
 import re, random, warnings
 import numpy as np
 import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -204,15 +208,14 @@ TEMPLATES = {
         ]},
 }
 
-STOPWORDS = set("""a an the is are was were be been being have has had do does
-did will would could should may might shall can i me my myself we our ours
-ourselves you your yours yourself he him his she her hers it its they them
-their theirs what which who this that these those am as at by for from in into
-of on or so than to too up very with""".split())
+# ─── NLTK STOPWORDS & TOKENIZATION ──────────────────────────────────────────
+STOPWORDS = set(stopwords.words('english'))
 
 def clean(text):
+    """Text preprocessing using NLTK tokenization and stopword removal."""
     text = re.sub(r"[^a-z\s]", " ", text.lower())
-    return " ".join(t for t in text.split() if t not in STOPWORDS and len(t)>2)
+    tokens = word_tokenize(text)
+    return " ".join(t for t in tokens if t not in STOPWORDS and len(t) > 2)
 
 rows = []
 for i in range(600):
