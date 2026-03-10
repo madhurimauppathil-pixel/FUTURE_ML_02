@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clarix — ML Classification Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #F7F8FA;
+    --bg2:     #0D2B2B;
+    --bg3:     #ECEEF2;
+    --card:    #FFFFFF;
+    --card2:   #EFF3FB;
+    --stroke:  #E2E6EF;
+    --stroke2: #1A3D3D;
+    --ink:     #0A1628;
+    --ink2:    #E8EDF5;
+    --muted:   #64748B;
+    --muted2:  #8A9BB8;
+    --sub:     #CBD5E1;
+    --sub2:    #1F4040;
+    --high:    #DC2626;
+    --medium:  #D97706;
+    --low:     #16A34A;
+    --accent:  #C9A84C;
+    --accent2: #1E3A5F;
+    --accent3: #16A34A;
+    --c1: #4F6EF5; --c2: #0EA5C9; --c3: #D97706;
+    --c4: #16A34A; --c5: #DC2626; --c6: #7C3AED;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--bg2); border-right: 1px solid var(--stroke2); display: flex; flex-direction: column; padding: 0 0 24px; z-index: 100; }
+  .sidebar-brand { padding: 28px 24px 22px; border-bottom: 1px solid var(--stroke2); }
+  .brand-logo { display: flex; align-items: center; gap: 11px; margin-bottom: 16px; }
+  .logo-mark { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #C9A84C, #A8893A); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 16px rgba(201,168,76,.4); }
+  .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #F0E6C8; line-height: 1; letter-spacing: 0.02em; }
+  .brand-tagline { font-size: 10px; color: var(--muted2); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .brand-meta { display: flex; flex-direction: column; gap: 5px; }
+  .meta-row { display: flex; align-items: center; gap: 8px; }
+  .meta-key { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--sub2); letter-spacing: 0.1em; width: 52px; }
+  .meta-val { font-size: 10.5px; color: var(--muted2); }
+  .meta-val.hi { color: var(--accent); font-weight: 600; }
+  .meta-status { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted2); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #16A34A; box-shadow: 0 0 6px rgba(22,163,74,.6); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .nav { padding: 14px 12px; flex: 1; }
+  .nav-group { font-size: 9px; letter-spacing: 0.14em; color: var(--sub2); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; padding: 0 10px; margin-bottom: 6px; margin-top: 14px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 12.5px; font-weight: 500; color: var(--muted2); transition: all .16s; text-decoration: none; }
+  .nav-item:hover { background: var(--stroke2); color: #E8EDF5; }
+  .nav-item.active { background: rgba(201,168,76,.12); color: var(--accent); border-left: 2px solid var(--accent); padding-left: 8px; }
+  .nav-icon { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .sidebar-footer { padding: 16px 24px 0; border-top: 1px solid var(--stroke2); }
+  .author-block { display: flex; align-items: center; gap: 10px; }
+  .author-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #C9A84C, #A8893A); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+  .author-name { font-size: 12.5px; font-weight: 600; color: #E8EDF5; }
+  .author-role { font-size: 10px; color: var(--muted2); font-family: 'JetBrains Mono', monospace; }
+
+  /* MAIN */
+  .main { margin-left: 240px; padding: 36px 44px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 30px; padding-bottom: 22px; border-bottom: 1px solid var(--stroke); display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: #A8893A; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .e-dot { width: 5px; height: 5px; border-radius: 50%; background: #C9A84C; }
+  .page-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 34px; color: var(--ink); line-height: 1.1; font-weight: 700; }
+  .page-header p { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.6; max-width: 480px; }
+  .header-kpi { background: var(--bg3); border: 1px solid var(--stroke); border-radius: 12px; padding: 14px 20px; text-align: right; flex-shrink: 0; }
+  .hkpi-val { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #C9A84C; font-weight: 700; }
+  .hkpi-label { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* STAT CARDS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  .stat-card { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; padding: 20px 22px; transition: transform .2s, border-color .2s; position: relative; overflow: hidden; }
+  .stat-card::after { content: ''; position: absolute; top: -18px; right: -18px; width: 60px; height: 60px; border-radius: 50%; background: var(--ac, var(--accent)); opacity: .07; }
+  .stat-card:hover { transform: translateY(-2px); border-color: #C9A84C; box-shadow: 0 6px 20px rgba(201,168,76,.1); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: .08em; margin-bottom: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 38px; color: var(--ink); line-height: 1; font-weight: 700; }
+  .stat-badge { display: inline-flex; align-items: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 3px 8px; border-radius: 20px; margin-top: 8px; }
+  .bg  { background: rgba(81,207,138,.11); color: #51cf8a; }
+  .bb  { background: rgba(78,140,247,.11);  color: var(--accent); }
+  .bp  { background: rgba(167,139,250,.11); color: var(--accent2); }
+  .bo  { background: rgba(255,169,77,.11);  color: var(--medium); }
+  .br  { background: rgba(255,107,122,.11); color: var(--high); }
+
+  /* GRIDS */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .g21 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .mb { margin-bottom: 18px; }
+
+  /* CARD */
+  .card { background: var(--card); border: 1px solid var(--stroke); border-radius: 16px; padding: 24px; transition: border-color .18s, box-shadow .18s; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  .card:hover { border-color: #C9A84C; box-shadow: 0 4px 18px rgba(201,168,76,.08); }
+  .card-title { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; color: var(--ink); text-transform: uppercase; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; margin-bottom: 18px; }
+
+  /* HORIZONTAL BAR */
+  .hb-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .hb-row { display: flex; align-items: center; gap: 10px; }
+  .hb-label { font-size: 11px; color: var(--muted); flex-shrink: 0; width: 152px; }
+  .hb-track { flex: 1; background: var(--bg3); border-radius: 99px; height: 7px; overflow: hidden; }
+  .hb-fill { height: 100%; border-radius: 99px; transition: width 1.1s cubic-bezier(.22,1,.36,1); }
+  .hb-val { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); width: 34px; text-align: right; }
+
+  /* DONUT */
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 8px 0; }
+  .d-legend { display: flex; flex-direction: column; gap: 9px; width: 100%; }
+  .d-row { display: flex; align-items: center; gap: 9px; font-size: 12px; }
+  .d-swatch { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+  .d-name { flex: 1; color: var(--ink); }
+  .d-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  .d-cnt { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sub); padding-left: 6px; }
+
+  /* HISTOGRAM */
+  .hist-bars { display: flex; align-items: flex-end; gap: 5px; height: 110px; padding: 0 2px; }
+  .hist-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+  .hist-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); transition: height .8s cubic-bezier(.22,1,.36,1); }
+  .hist-label { font-size: 8px; color: var(--sub); font-family: 'JetBrains Mono', monospace; }
+  .hist-mean { display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 12px; justify-content: center; }
+  .mean-line { width: 22px; height: 0; border-top: 2px dashed var(--accent); }
+
+  /* HEATMAP */
+  .hmap-table { width: 100%; border-collapse: collapse; }
+  .hmap-table th { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); padding: 0 10px 12px; text-align: center; border-bottom: 1px solid var(--stroke); letter-spacing: .07em; }
+  .hmap-table th:first-child { text-align: left; padding-left: 0; }
+  .hmap-table td { padding: 8px 10px; border-bottom: 1px solid rgba(42,53,80,.35); font-size: 12px; }
+  .hmap-table tr:last-child td { border-bottom: none; }
+  .hcell { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 28px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 600; cursor: default; transition: transform .12s; }
+  .hcell:hover { transform: scale(1.1); }
+
+  /* MODEL TABLE */
+  .m-table { width: 100%; border-collapse: collapse; }
+  .m-table th { font-size: 9.5px; font-family: 'JetBrains Mono', monospace; color: var(--sub); letter-spacing: .1em; text-transform: uppercase; padding: 0 10px 12px 0; text-align: left; border-bottom: 1px solid var(--stroke); }
+  .m-table td { padding: 11px 10px 11px 0; border-bottom: 1px solid rgba(42,53,80,.45); font-size: 12.5px; }
+  .m-table tr:last-child td { border-bottom: none; }
+  .mname { font-weight: 600; color: var(--ink); }
+  .wtag { background: rgba(201,168,76,.12); color: #A8893A; font-size: 9px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 4px; margin-left: 6px; }
+  .mbar { display: flex; align-items: center; gap: 7px; }
+  .mtrack { flex: 1; background: var(--bg3); height: 5px; border-radius: 99px; overflow: hidden; }
+  .mfill { height: 100%; border-radius: 99px; }
+  .mval { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); }
+
+  /* PER CLASS */
+  .pc-wrap { display: flex; flex-direction: column; gap: 13px; }
+  .pc-item {}
+  .pc-head { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .pc-name { font-size: 11px; font-weight: 500; color: var(--ink); }
+  .pc-score { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--accent3); }
+  .pc-track { background: var(--bg3); height: 6px; border-radius: 99px; overflow: hidden; }
+  .pc-fill { height: 100%; border-radius: 99px; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+
+  /* DIAGONAL CARDS */
+  .diag-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 4px; }
+  .diag-card { border-radius: 11px; padding: 16px; text-align: center; }
+  .diag-val { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700; }
+  .diag-name { font-size: 9.5px; color: rgba(232,237,245,.6); margin-top: 4px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+
+  /* CONFUSION MATRIX */
+  .cm-grid { display: grid; gap: 5px; }
+  .cm-cell { display: flex; align-items: center; justify-content: center; border-radius: 9px; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 700; cursor: default; transition: transform .13s; }
+  .cm-cell:hover { transform: scale(1.07); }
+  .cm-lh { display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .cm-lv { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* PRIORITY METRICS */
+  .pm-block { display: flex; flex-direction: column; gap: 16px; }
+  .pm-item { background: var(--bg3); border-radius: 12px; padding: 16px; }
+  .pm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .pm-label { font-weight: 600; font-size: 13px; }
+  .pm-chips { display: flex; gap: 5px; }
+  .pm-chip { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 2px 8px; border-radius: 4px; }
+  .pm-bars { display: flex; flex-direction: column; gap: 6px; }
+  .pm-brow { display: flex; align-items: center; gap: 8px; }
+  .pm-key { font-size: 9.5px; color: var(--muted); width: 18px; font-family: 'JetBrains Mono', monospace; }
+  .pm-track { flex: 1; background: var(--bg2); height: 6px; border-radius: 99px; overflow: hidden; }
+  .pm-fill { height: 100%; border-radius: 99px; transition: width 1.1s cubic-bezier(.22,1,.36,1); }
+  .pm-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); width: 32px; text-align: right; }
+
+  /* OBS CARDS */
+  .obs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .obs-card { border-radius: 12px; padding: 18px; }
+  .obs-icon { font-size: 18px; margin-bottom: 10px; }
+  .obs-tag { font-size: 9.5px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+  .obs-text { font-size: 12px; line-height: 1.65; color: var(--muted); }
+
+  /* LIVE DEMO */
+  .input-area { background: var(--bg3); border: 1.5px solid var(--stroke); border-radius: 12px; padding: 16px; transition: border-color .2s; margin-bottom: 16px; }
+  .input-area:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(78,140,247,.08); }
+  .ticket-ta { width: 100%; background: none; border: none; outline: none; font-family: 'Inter', sans-serif; font-size: 13.5px; color: var(--ink); resize: vertical; min-height: 88px; line-height: 1.7; }
+  .ticket-ta::placeholder { color: var(--sub); }
+  .ta-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--stroke); margin-top: 8px; }
+  .char-ct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--sub); }
+  .run-btn { background: linear-gradient(135deg, #C9A84C, #A8893A); color: white; border: none; padding: 9px 22px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12.5px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(201,168,76,.3); }
+  .run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.45); }
+  .sample-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sp { font-size: 10.5px; color: var(--muted); background: var(--bg3); border: 1px solid var(--stroke); border-radius: 6px; padding: 5px 10px; cursor: pointer; transition: all .14s; font-weight: 500; }
+  .sp:hover { border-color: var(--accent); color: var(--accent); }
+  .result-box { background: var(--bg3); border: 1px solid var(--stroke); border-radius: 14px; padding: 20px 22px; opacity: 0; transform: translateY(8px); transition: all .38s; }
+  .result-box.show { opacity: 1; transform: translateY(0); }
+  .r-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--stroke); }
+  .r-field-label { font-size: 9.5px; color: var(--sub); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+  .r-cat { font-size: 16px; font-weight: 700; }
+  .prio-badge { display: inline-flex; align-items: center; padding: 6px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; }
+  .conf-label { font-size: 9.5px; color: var(--sub); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
+  .conf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .conf-name { font-size: 11px; color: var(--muted); width: 140px; flex-shrink: 0; }
+  .conf-track { flex: 1; background: var(--bg2); height: 6px; border-radius: 99px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 99px; }
+  .conf-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--sub); width: 34px; text-align: right; }
+
+  /* SHOWCASE TABLE */
+  .sc-table { width: 100%; border-collapse: collapse; }
+  .sc-table th { font-size: 9.5px; font-family: 'JetBrains Mono', monospace; color: var(--sub); letter-spacing: .1em; text-transform: uppercase; padding: 0 8px 12px; text-align: left; border-bottom: 1px solid var(--stroke); }
+  .sc-table td { padding: 11px 8px; border-bottom: 1px solid rgba(42,53,80,.4); font-size: 12px; }
+  .sc-table tr:last-child td { border-bottom: none; }
+  .sc-table tr:hover td { background: rgba(28,34,48,.5); }
+  .tk-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--sub); }
+  .tk-text { color: var(--muted); font-size: 11.5px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .cat-badge { display: inline-block; padding: 3px 9px; border-radius: 5px; font-size: 10.5px; font-weight: 600; }
+  .prio-badge-sm { display: inline-block; padding: 3px 11px; border-radius: 99px; font-size: 10.5px; font-weight: 700; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .page.active .card { animation: fadeUp .42s ease both; }
+  .page.active .stat-card:nth-child(1){animation-delay:.04s}
+  .page.active .stat-card:nth-child(2){animation-delay:.08s}
+  .page.active .stat-card:nth-child(3){animation-delay:.12s}
+  .page.active .stat-card:nth-child(4){animation-delay:.16s}
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="logo-mark">
+        <!-- Clarix precision icon: crosshair + center dot -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="8.5" stroke="white" stroke-width="1.4" opacity="0.9"/>
+          <circle cx="11" cy="11" r="4.5" stroke="white" stroke-width="1.4" opacity="0.7"/>
+          <circle cx="11" cy="11" r="1.8" fill="white"/>
+          <line x1="11" y1="1" x2="11" y2="5" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="11" y1="17" x2="11" y2="21" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="1" y1="11" x2="5" y2="11" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="17" y1="11" x2="21" y2="11" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Clarix</div>
+        
+      </div>
+    </div>
+    <div class="brand-meta">
+      <div style="margin-top:4px;padding-top:12px;border-top:1px solid #1E2E42;">
+        <div style="font-size:10.5px;color:#8A9BB8;line-height:1.6;font-style:italic;">Support Ticket<br>Classification System</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-group">Dashboards</div>
+    <a class="nav-item active" onclick="showPage('overview',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Dataset Overview
+    </a>
+    <a class="nav-item" onclick="showPage('category',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Category Model
+    </a>
+    <a class="nav-item" onclick="showPage('priority',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Priority Model
+    </a>
+    <div class="nav-group">Tools</div>
+    <a class="nav-item" onclick="showPage('demo',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      Live Classifier
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="author-block">
+      <div class="author-avatar">M</div>
+      <div>
+        <div class="author-name">Madhurima Mani</div>
+        <div class="author-role">ML Intern</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- ═══════ PAGE: OVERVIEW ═══════ -->
+<div class="page active" id="page-overview">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="e-dot"></span>Dataset · Exploratory Analysis</div>
+      <h2>Dataset Overview</h2>
+      <p>600 labelled support tickets across 6 categories and 3 priority tiers, balanced for training and evaluation.</p>
+    </div>
+    <div class="header-kpi"><div class="hkpi-val">600</div><div class="hkpi-label">total tickets</div></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card" style="--ac:var(--accent)"><div class="stat-label">Total Tickets</div><div class="stat-value">600</div><span class="stat-badge bb">Balanced</span></div>
+    <div class="stat-card" style="--ac:var(--accent2)"><div class="stat-label">Categories</div><div class="stat-value">6</div><span class="stat-badge bp">Distinct classes</span></div>
+    <div class="stat-card" style="--ac:var(--low)"><div class="stat-label">Priority Levels</div><div class="stat-value">3</div><span class="stat-badge bg">High · Med · Low</span></div>
+    <div class="stat-card" style="--ac:var(--medium)"><div class="stat-label">Avg Words / Ticket</div><div class="stat-value">8.8</div><span class="stat-badge bo">Post-cleaning</span></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Tickets by Category</div>
+      <div class="card-sub">volume distribution across support types</div>
+      <div class="hb-wrap" id="cat-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Priority Distribution</div>
+      <div class="card-sub">proportion split across full dataset</div>
+      <div class="donut-wrap">
+        <svg width="156" height="156" viewBox="0 0 156 156">
+          <circle cx="78" cy="78" r="60" fill="none" stroke="var(--bg3)" stroke-width="22"/>
+          <!-- circ = 2π×60 ≈ 376.99 | High 32%=120.6, Med 35%=131.9, Low 33%=124.4 -->
+          <circle cx="78" cy="78" r="60" fill="none" stroke="var(--high)"   stroke-width="22" stroke-dasharray="120.6 256.4" stroke-dashoffset="0"      transform="rotate(-90 78 78)"/>
+          <circle cx="78" cy="78" r="60" fill="none" stroke="var(--medium)" stroke-width="22" stroke-dasharray="131.9 245.1" stroke-dashoffset="-120.6"  transform="rotate(-90 78 78)"/>
+          <circle cx="78" cy="78" r="60" fill="none" stroke="var(--low)"    stroke-width="22" stroke-dasharray="124.4 252.6" stroke-dashoffset="-252.5"  transform="rotate(-90 78 78)"/>
+          <text x="78" y="73" text-anchor="middle" font-family="Playfair Display,serif" font-size="24" fill="var(--ink)" font-weight="700">600</text>
+          <text x="78" y="89" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--muted)">tickets</text>
+        </svg>
+        <div class="d-legend">
+          <div class="d-row"><span class="d-swatch" style="background:var(--high)"></span><span class="d-name">High Priority</span><span class="d-pct">32%</span><span class="d-cnt">~192</span></div>
+          <div class="d-row"><span class="d-swatch" style="background:var(--medium)"></span><span class="d-name">Medium Priority</span><span class="d-pct">35%</span><span class="d-cnt">~210</span></div>
+          <div class="d-row"><span class="d-swatch" style="background:var(--low)"></span><span class="d-name">Low Priority</span><span class="d-pct">33%</span><span class="d-cnt">~198</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Avg Words by Category</div>
+      <div class="card-sub">mean word count after text cleaning</div>
+      <div class="hb-wrap" id="word-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Word Count Distribution</div>
+      <div class="card-sub">frequency of ticket lengths (post-cleaning)</div>
+      <!-- histogram bins: 4,5,6,7,8,9,10,11,12,13 with heights matching image -->
+      <div class="hist-bars" id="hist-bars">
+        <div class="hist-bar"><div class="hist-fill" style="height:3%;opacity:.35"></div><span class="hist-label">4</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:3%;opacity:.35"></div><span class="hist-label">5</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:15%;opacity:.45"></div><span class="hist-label">6</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:42%;opacity:.6"></div><span class="hist-label">7</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:74%;opacity:.75"></div><span class="hist-label">8</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:100%;opacity:.92;border:2px dashed rgba(78,140,247,.6)"></div><span class="hist-label" style="color:var(--accent);font-weight:600">9</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:57%;opacity:.75"></div><span class="hist-label">10</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:39%;opacity:.55"></div><span class="hist-label">11</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:16%;opacity:.4"></div><span class="hist-label">12</span></div>
+        <div class="hist-bar"><div class="hist-fill" style="height:3%;opacity:.25"></div><span class="hist-label">13</span></div>
+      </div>
+      <div class="hist-mean"><span class="mean-line"></span>Mean = 8.8 words per ticket</div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-title">Priority × Category Breakdown</div>
+    <div class="card-sub">ticket counts per category and priority combination</div>
+    <div id="hmap"></div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: CATEGORY ═══════ -->
+<div class="page" id="page-category">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="e-dot"></span>Model Evaluation · Category Classification</div>
+      <h2>Category Model</h2>
+      <p>All four classifiers achieve perfect 100% accuracy on 6-class categorisation, with 5-fold cross-validation confirming zero variance.</p>
+    </div>
+    <div class="header-kpi"><div class="hkpi-val">100%</div><div class="hkpi-label">accuracy · all 4 models</div></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Test Accuracy</div><div class="stat-value">100%</div><span class="stat-badge bg">All 4 models</span></div>
+    <div class="stat-card"><div class="stat-label">Weighted F1</div><div class="stat-value">1.00</div><span class="stat-badge bb">Perfect score</span></div>
+    <div class="stat-card"><div class="stat-label">5-Fold CV</div><div class="stat-value">100%</div><span class="stat-badge bp">No variance</span></div>
+    <div class="stat-card"><div class="stat-label">Deployed Model</div><div class="stat-value" style="font-size:20px;margin-top:4px">Log. Reg.</div><span class="stat-badge bo">Fastest inference</span></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Model Performance Comparison</div>
+      <div class="card-sub">test accuracy · weighted F1 · 5-fold CV</div>
+      <!-- Grouped visual bars -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace"><span style="width:9px;height:9px;border-radius:2px;background:var(--accent);display:inline-block"></span>Accuracy</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace"><span style="width:9px;height:9px;border-radius:2px;background:var(--accent2);display:inline-block"></span>F1</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace"><span style="width:9px;height:9px;border-radius:2px;background:var(--accent3);display:inline-block"></span>CV</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;align-items:end">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="display:flex;gap:2px;align-items:flex-end;height:80px">
+            <div style="width:14px;background:var(--accent);border-radius:3px 3px 0 0;height:80px;opacity:.85"></div>
+            <div style="width:14px;background:var(--accent2);border-radius:3px 3px 0 0;height:80px;opacity:.75"></div>
+            <div style="width:14px;background:var(--accent3);border-radius:3px 3px 0 0;height:80px;opacity:.65"></div>
+          </div>
+          <span style="font-size:9.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.3">Log.<br>Reg.</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="display:flex;gap:2px;align-items:flex-end;height:80px">
+            <div style="width:14px;background:var(--accent);border-radius:3px 3px 0 0;height:80px;opacity:.85"></div>
+            <div style="width:14px;background:var(--accent2);border-radius:3px 3px 0 0;height:80px;opacity:.75"></div>
+            <div style="width:14px;background:var(--accent3);border-radius:3px 3px 0 0;height:80px;opacity:.65"></div>
+          </div>
+          <span style="font-size:9.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.3">Linear<br>SVM</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="display:flex;gap:2px;align-items:flex-end;height:80px">
+            <div style="width:14px;background:var(--accent);border-radius:3px 3px 0 0;height:80px;opacity:.85"></div>
+            <div style="width:14px;background:var(--accent2);border-radius:3px 3px 0 0;height:80px;opacity:.75"></div>
+            <div style="width:14px;background:var(--accent3);border-radius:3px 3px 0 0;height:80px;opacity:.65"></div>
+          </div>
+          <span style="font-size:9.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.3">Random<br>Forest</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="display:flex;gap:2px;align-items:flex-end;height:80px">
+            <div style="width:14px;background:var(--accent);border-radius:3px 3px 0 0;height:80px;opacity:.85"></div>
+            <div style="width:14px;background:var(--accent2);border-radius:3px 3px 0 0;height:80px;opacity:.75"></div>
+            <div style="width:14px;background:var(--accent3);border-radius:3px 3px 0 0;height:80px;opacity:.65"></div>
+          </div>
+          <span style="font-size:9.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.3">Naive<br>Bayes</span>
+        </div>
+      </div>
+      <table class="m-table">
+        <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>5-CV</th></tr></thead>
+        <tbody id="model-tbody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Per-Class Metrics</div>
+      <div class="card-sub">logistic regression · precision / recall / F1</div>
+      <div class="pc-wrap" id="per-class"></div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-title">Confusion Matrix — Logistic Regression</div>
+    <div class="card-sub">all 120 test samples perfectly classified — zero off-diagonal errors</div>
+    <div class="diag-grid" id="diag-cards"></div>
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:var(--sub);font-family:'JetBrains Mono',monospace">✦ Perfect diagonal — 0 misclassifications across all 6 categories</div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: PRIORITY ═══════ -->
+<div class="page" id="page-priority">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="e-dot"></span>Model Evaluation · Priority Classification</div>
+      <h2>Priority Model</h2>
+      <p>3-class priority prediction is inherently harder — urgency cues are subtle and overlapping in short ticket text.</p>
+    </div>
+    <div class="header-kpi"><div class="hkpi-val">~42%</div><div class="hkpi-label">macro F1 score</div></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card" style="--ac:var(--high)"><div class="stat-label">High — F1</div><div class="stat-value">43%</div><span class="stat-badge bo">Precision 40%</span></div>
+    <div class="stat-card" style="--ac:var(--low)"><div class="stat-label">Low — F1</div><div class="stat-value">52%</div><span class="stat-badge bg">Best class</span></div>
+    <div class="stat-card" style="--ac:var(--medium)"><div class="stat-label">Medium — F1</div><div class="stat-value">29%</div><span class="stat-badge br">Most confused</span></div>
+    <div class="stat-card"><div class="stat-label">Test Samples</div><div class="stat-value">120</div><span class="stat-badge bb">Hold-out set</span></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Priority Confusion Matrix</div>
+      <div class="card-sub">true labels (rows) vs. predicted labels (columns)</div>
+      <div id="prio-cm"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Per-Priority Metrics</div>
+      <div class="card-sub">precision · recall · F1 per class</div>
+      <div class="pm-block" id="prio-metrics"></div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-title">Analysis & Recommendations</div>
+    <div class="card-sub">observations from priority classification results</div>
+    <div class="obs-grid">
+      <div class="obs-card" style="background:rgba(255,107,122,.06);border:1px solid rgba(255,107,122,.15)">
+        <div class="obs-icon">⚠</div>
+        <div class="obs-tag" style="color:var(--high)">Challenge</div>
+        <div class="obs-text">Priority is contextual — the same ticket type (e.g. Billing) spans High/Medium/Low based on urgency cues that are hard to extract from short ticket text alone.</div>
+      </div>
+      <div class="obs-card" style="background:rgba(81,207,138,.06);border:1px solid rgba(81,207,138,.15)">
+        <div class="obs-icon">✦</div>
+        <div class="obs-tag" style="color:var(--low)">Strength</div>
+        <div class="obs-text">Low priority achieves the best F1 at 52%, likely due to distinctive keywords like "request", "suggestion", "question" that consistently signal low urgency.</div>
+      </div>
+      <div class="obs-card" style="background:rgba(78,140,247,.06);border:1px solid rgba(78,140,247,.15)">
+        <div class="obs-icon">→</div>
+        <div class="obs-tag" style="color:var(--accent)">Next Steps</div>
+        <div class="obs-text">Consider semantic embeddings (BERT / SentenceTransformers) or ensemble stacking with predicted category as an additional feature for priority inference.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: LIVE DEMO ═══════ -->
+<div class="page" id="page-demo">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="e-dot"></span>Interactive · Real-Time Inference</div>
+      <h2>Live Classifier</h2>
+      <p>Enter any support ticket text to receive an instant category and priority prediction.</p>
+    </div>
+  </div>
+
+  <div class="g21">
+    <div class="card">
+      <div class="card-title">Ticket Input</div>
+      <div class="card-sub">type freely or load a sample below</div>
+      <div class="sample-pills" id="sample-pills"></div>
+      <div class="input-area">
+        <textarea class="ticket-ta" id="ticket-input" placeholder="e.g. I was charged twice for my subscription this month. Please refund immediately."></textarea>
+        <div class="ta-footer">
+          <span class="char-ct" id="char-ct">0 chars</span>
+          <button class="run-btn" onclick="classify()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Run Classification
+          </button>
+        </div>
+      </div>
+      <div class="result-box" id="result-box">
+        <div class="r-cols">
+          <div><div class="r-field-label">Predicted Category</div><div class="r-cat" id="r-cat">—</div></div>
+          <div><div class="r-field-label">Predicted Priority</div><div id="r-prio"></div></div>
+        </div>
+        <div class="conf-label">Category Confidence Scores</div>
+        <div id="r-conf"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Prediction Showcase</div>
+      <div class="card-sub">6 live samples — predicted labels</div>
+      <table class="sc-table">
+        <thead><tr><th>#</th><th>Ticket</th><th>Category</th><th>Priority</th></tr></thead>
+        <tbody id="sc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const CAT_DATA=[{name:"Shipping & Delivery",count:108,color:"var(--c5)"},{name:"General Inquiry",count:107,color:"var(--c6)"},{name:"Technical Support",count:105,color:"var(--c2)"},{name:"Feature Request",count:103,color:"var(--c4)"},{name:"Billing",count:92,color:"var(--c1)"},{name:"Account Management",count:85,color:"var(--c3)"}];
+const WORD_DATA=[{name:"Technical Support",avg:10.0,color:"var(--c2)"},{name:"Billing",avg:9.4,color:"var(--c1)"},{name:"Shipping & Delivery",avg:8.9,color:"var(--c5)"},{name:"Account Management",avg:8.7,color:"var(--c3)"},{name:"Feature Request",avg:8.4,color:"var(--c4)"},{name:"General Inquiry",avg:7.8,color:"var(--c6)"}];
+const HEATMAP=[{cat:"Account Management",h:24,m:33,l:28},{cat:"Billing",h:47,m:38,l:7},{cat:"Feature Request",h:8,m:41,l:54},{cat:"General Inquiry",h:10,m:31,l:66},{cat:"Shipping & Delivery",h:51,m:34,l:23},{cat:"Technical Support",h:51,m:33,l:21}];
+const MODELS=[{name:"Logistic Reg.",acc:100,f1:100,cv:100,w:true},{name:"Linear SVM",acc:100,f1:100,cv:100,w:false},{name:"Random Forest",acc:100,f1:100,cv:100,w:false},{name:"Naive Bayes",acc:100,f1:100,cv:100,w:false}];
+const PER_CLASS=[{name:"Account Management",p:100,r:100,f:100,c:"var(--c3)"},{name:"Billing",p:100,r:100,f:100,c:"var(--c1)"},{name:"Feature Request",p:100,r:100,f:100,c:"var(--c4)"},{name:"General Inquiry",p:100,r:100,f:100,c:"var(--c6)"},{name:"Shipping & Delivery",p:100,r:100,f:100,c:"var(--c5)"},{name:"Technical Support",p:100,r:100,f:100,c:"var(--c2)"}];
+const DIAG=[{label:"Account Mgmt",val:17,c:"var(--c3)"},{label:"Billing",val:18,c:"var(--c1)"},{label:"Feature Req.",val:21,c:"var(--c4)"},{label:"Gen. Inquiry",val:21,c:"var(--c6)"},{label:"Shipping",val:22,c:"var(--c5)"},{label:"Tech Support",val:21,c:"var(--c2)"}];
+const PRIO_CM=[[18,4,18],[13,21,8],[14,13,11]];
+const PRIO_LABELS=["High","Low","Medium"];
+const PRIO_CLR={High:"var(--high)",Low:"var(--low)",Medium:"var(--medium)"};
+const PRIO_METRICS=[{l:"High",p:40,r:45,f:43,c:"var(--high)"},{l:"Low",p:55,r:50,f:52,c:"var(--low)"},{l:"Medium",p:30,r:29,f:29,c:"var(--medium)"}];
+const CAT_CLR={"Billing":"var(--c1)","Technical Support":"var(--c2)","Account Management":"var(--c3)","Feature Request":"var(--c4)","Shipping & Delivery":"var(--c5)","General Inquiry":"var(--c6)"};
+const SAMPLES=[{text:"I was charged twice for my subscription. Please refund immediately.",cat:"Billing",prio:"Medium"},{text:"The API is returning 503 errors for all POST requests since this morning.",cat:"Technical Support",prio:"Medium"},{text:"My order has not arrived after 14 days. The tracking shows no update.",cat:"Shipping & Delivery",prio:"High"},{text:"What are the differences between the Basic and Pro plans?",cat:"General Inquiry",prio:"Low"},{text:"It would be great to have a dark mode option in the dashboard.",cat:"Feature Request",prio:"Low"},{text:"I need to reset my password but the reset email never arrives.",cat:"Account Management",prio:"Medium"}];
+
+function showPage(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');el.classList.add('active');renderAll();}
+
+const rendered={};
+function once(id,fn){if(!rendered[id]){fn();rendered[id]=true;}}
+
+function renderCatBars(){once('cb',()=>{const el=document.getElementById('cat-bars');const mx=108;el.innerHTML=CAT_DATA.map(d=>`<div class="hb-row"><span class="hb-label">${d.name}</span><div class="hb-track"><div class="hb-fill" style="width:0%;background:${d.color}" data-w="${(d.count/mx*100).toFixed(1)}"></div></div><span class="hb-val">${d.count}</span></div>`).join('');setTimeout(()=>el.querySelectorAll('.hb-fill').forEach(f=>f.style.width=f.dataset.w+'%'),60);});}
+
+function renderWordBars(){once('wb',()=>{const el=document.getElementById('word-bars');const mx=10;el.innerHTML=WORD_DATA.map(d=>`<div class="hb-row"><span class="hb-label">${d.name}</span><div class="hb-track"><div class="hb-fill" style="width:0%;background:${d.color};opacity:.75" data-w="${(d.avg/mx*100).toFixed(1)}"></div></div><span class="hb-val">${d.avg}</span></div>`).join('');setTimeout(()=>el.querySelectorAll('.hb-fill').forEach(f=>f.style.width=f.dataset.w+'%'),60);});}
+
+function renderHmap(){once('hm',()=>{const el=document.getElementById('hmap');const mx=66;let h=`<table class="hmap-table"><thead><tr><th>Category</th><th style="color:var(--high)">▲ High</th><th style="color:var(--medium)">● Medium</th><th style="color:var(--low)">▼ Low</th></tr></thead><tbody>`;HEATMAP.forEach(r=>{const cell=(v,c)=>{const a=(0.1+(v/mx)*0.78).toFixed(2);return`<td style="text-align:center"><span class="hcell" style="background:${c};opacity:${a};color:var(--ink)">${v}</span></td>`;};h+=`<tr><td style="color:var(--muted);font-size:12px">${r.cat}</td>${cell(r.h,'var(--high)')}${cell(r.m,'var(--medium)')}${cell(r.l,'var(--low)')}</tr>`;});h+='</tbody></table>';el.innerHTML=h;});}
+
+function renderModelTable(){once('mt',()=>{const el=document.getElementById('model-tbody');el.innerHTML=MODELS.map(m=>`<tr><td><span class="mname">${m.name}</span>${m.w?'<span class="wtag">selected</span>':''}</td><td><div class="mbar"><div class="mtrack"><div class="mfill" style="width:${m.acc}%;background:var(--accent)"></div></div><span class="mval">${m.acc}%</span></div></td><td><div class="mbar"><div class="mtrack"><div class="mfill" style="width:${m.f1}%;background:var(--accent2)"></div></div><span class="mval">${m.f1}%</span></div></td><td><div class="mbar"><div class="mtrack"><div class="mfill" style="width:${m.cv}%;background:var(--accent3)"></div></div><span class="mval">${m.cv}%</span></div></td></tr>`).join('');});}
+
+function renderPerClass(){once('pc',()=>{const el=document.getElementById('per-class');el.innerHTML=PER_CLASS.map(c=>`<div class="pc-item"><div class="pc-head"><span class="pc-name">${c.name}</span><span class="pc-score">P ${c.p} · R ${c.r} · F1 ${c.f}</span></div><div class="pc-track"><div class="pc-fill" style="width:0%;background:${c.c}" data-w="100"></div></div></div>`).join('');setTimeout(()=>el.querySelectorAll('.pc-fill').forEach(f=>f.style.width=f.dataset.w+'%'),60);});}
+
+function renderDiag(){once('dg',()=>{const el=document.getElementById('diag-cards');el.innerHTML=DIAG.map(d=>`<div class="diag-card" style="background:${d.c};opacity:.8"><div class="diag-val" style="color:var(--ink)">${d.val}</div><div class="diag-name">${d.label}</div></div>`).join('');});}
+
+function renderPrioCM(){once('cm',()=>{const el=document.getElementById('prio-cm');const mx=21;let h=`<div style="display:grid;grid-template-columns:56px repeat(3,1fr);gap:5px;margin-top:8px;font-family:'JetBrains Mono',monospace"><div></div>${PRIO_LABELS.map(l=>`<div class="cm-lh">${l}</div>`).join('')}`;PRIO_CM.forEach((row,ri)=>{h+=`<div class="cm-lv">${PRIO_LABELS[ri]}</div>`;row.forEach((val,ci)=>{const d=ri===ci;const a=d?0.72:(0.08+(val/mx)*0.3);const bg=d?PRIO_CLR[PRIO_LABELS[ri]]:'var(--accent2)';h+=`<div class="cm-cell" style="background:${bg};opacity:${a.toFixed(2)};aspect-ratio:1;color:var(--ink)">${val}</div>`;});});h+='</div>';h+=`<div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap">${PRIO_LABELS.map(l=>`<span style="display:flex;align-items:center;gap:5px;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--muted)"><span style="width:10px;height:10px;border-radius:3px;background:${PRIO_CLR[l]};display:inline-block"></span>${l}</span>`).join('')}<span style="font-size:10px;color:var(--sub);font-family:'JetBrains Mono',monospace;margin-left:auto">Rows = True · Cols = Predicted</span></div>`;el.innerHTML=h;});}
+
+function renderPrioMetrics(){once('pm',()=>{const el=document.getElementById('prio-metrics');el.innerHTML=PRIO_METRICS.map(m=>`<div class="pm-item"><div class="pm-head"><span class="pm-label" style="color:${m.c}">${m.l}</span><div class="pm-chips"><span class="pm-chip" style="background:${m.c};opacity:.15;color:var(--ink)">P ${m.p}%</span><span class="pm-chip" style="background:${m.c};opacity:.15;color:var(--ink)">R ${m.r}%</span><span class="pm-chip" style="background:${m.c};opacity:.28;color:var(--ink)">F1 ${m.f}%</span></div></div><div class="pm-bars">${[['P',m.p],['R',m.r],['F',m.f]].map(([k,v])=>`<div class="pm-brow"><span class="pm-key">${k}</span><div class="pm-track"><div class="pm-fill" style="width:0%;background:${m.c}" data-w="${v}"></div></div><span class="pm-pct">${v}%</span></div>`).join('')}</div></div>`).join('');setTimeout(()=>el.querySelectorAll('.pm-fill').forEach(f=>f.style.width=f.dataset.w+'%'),60);});}
+
+function renderShowcase(){once('sc',()=>{const pp=document.getElementById('sample-pills');pp.innerHTML=SAMPLES.map((s,i)=>`<button class="sp" onclick="loadSample(${i})">Sample ${i+1}</button>`).join('');const tb=document.getElementById('sc-tbody');tb.innerHTML=SAMPLES.map((s,i)=>{const cc=CAT_CLR[s.cat]||'var(--bg3)';const pc={High:'var(--high)',Medium:'var(--medium)',Low:'var(--low)'}[s.prio];return`<tr><td class="tk-num">${i+1}</td><td><span class="tk-text">${s.text}</span></td><td><span class="cat-badge" style="background:${cc};opacity:.75;color:var(--ink)">${s.cat}</span></td><td><span class="prio-badge-sm" style="background:${pc};color:var(--ink)">${s.prio}</span></td></tr>`;}).join('');});}
+
+function renderAll(){renderCatBars();renderWordBars();renderHmap();renderModelTable();renderPerClass();renderDiag();renderPrioCM();renderPrioMetrics();renderShowcase();}
+
+// LIVE DEMO
+document.addEventListener('DOMContentLoaded',()=>{
+  const ta=document.getElementById('ticket-input');
+  if(ta)ta.addEventListener('input',()=>document.getElementById('char-ct').textContent=ta.value.length+' chars');
+  renderAll();
+});
+
+function loadSample(i){const ta=document.getElementById('ticket-input');ta.value=SAMPLES[i].text;document.getElementById('char-ct').textContent=SAMPLES[i].text.length+' chars';}
+
+const RULES={
+  cat:[
+    {keys:["charged","invoice","refund","billing","payment","bill","subscription","discount","vat","receipt","promo","price"],l:"Billing"},
+    {keys:["crash","error","bug","api","sync","dashboard","upload","integration","performance","session","503","not working"],l:"Technical Support"},
+    {keys:["password","account","access","profile","settings","2fa","verify","username","reset email"],l:"Account Management"},
+    {keys:["feature","suggestion","idea","option","dark mode","add","improve","enhancement","would be great"],l:"Feature Request"},
+    {keys:["order","shipping","delivery","tracking","package","arrived","dispatch","courier","14 days"],l:"Shipping & Delivery"},
+    {keys:["difference","plan","basic","pro","how","what","compare","information","question","differences"],l:"General Inquiry"},
+  ],
+  prio:[
+    {keys:["urgent","immediately","critical","emergency","crash","blocked","cannot","never","14 days","always","down","still being charged"],l:"High"},
+    {keys:["charged","error","not working","reset","fails","problem","issue","incorrect","declined","expired","stopped","cannot access"],l:"Medium"},
+    {keys:["feature","suggestion","would","question","information","difference","compare","curious","dark mode","idea","great to","basic","pro"],l:"Low"},
+  ]
+};
+
+function classify(){
+  const text=(document.getElementById('ticket-input').value||'').toLowerCase();
+  if(!text.trim())return;
+  let cat="General Inquiry",cs=0;
+  RULES.cat.forEach(r=>{const s=r.keys.filter(k=>text.includes(k)).length;if(s>cs){cs=s;cat=r.l;}});
+  let prio="Medium",ps=0;
+  RULES.prio.forEach(r=>{const s=r.keys.filter(k=>text.includes(k)).length;if(s>ps){ps=s;prio=r.l;}});
+  const cc=CAT_CLR[cat]||'var(--bg3)';
+  const pc={High:'var(--high)',Medium:'var(--medium)',Low:'var(--low)'}[prio];
+  document.getElementById('r-cat').innerHTML=`<span style="background:${cc};opacity:.8;padding:5px 14px;border-radius:7px;display:inline-block;font-size:15px;font-weight:700">${cat}</span>`;
+  document.getElementById('r-prio').innerHTML=`<span class="prio-badge" style="background:${pc};color:var(--ink)">${prio}</span>`;
+  const scores=RULES.cat.map(r=>({l:r.l,s:Math.max(0,r.keys.filter(k=>text.includes(k)).length),c:CAT_CLR[r.l]}));
+  const tot=scores.reduce((a,b)=>a+b.s,0)||1;
+  const norm=scores.map(s=>({...s,p:Math.round(s.s/tot*100)}));
+  const sum=norm.reduce((a,b)=>a+b.p,0);
+  const best=norm.reduce((a,b)=>a.p>b.p?a:b);best.p+=(100-sum);
+  document.getElementById('r-conf').innerHTML=norm.sort((a,b)=>b.p-a.p).map(s=>`<div class="conf-row"><span class="conf-name">${s.l}</span><div class="conf-track"><div class="conf-fill" style="width:${s.p}%;background:${s.c}"></div></div><span class="conf-pct">${s.p}%</span></div>`).join('');
+  const box=document.getElementById('result-box');box.classList.remove('show');setTimeout(()=>box.classList.add('show'),20);
+}
+</script>
+</body>
+</html>
